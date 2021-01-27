@@ -14,21 +14,19 @@ export function removeToken() {
   return Cookies.remove(TokenKey)
 }
 
-/*
 const expires = {
-  'access_token': 5/60 },
-  'refresh_token': 14 }
+  'access_token': 6 / 1 / 24, // 10分钟
+  'refresh_token': 7 // 7天
 }
 
-export function setToken(key, token) {
-  return Cookies.set(key, token, expires: expires[key])
+export function setCookieToken(key, token) {
+  return Cookies.set(key, token, { expires: expires[key] })
 }
 
-export function getToken(key) {
+export function getCookieToken(key) {
   return Cookies.get(key)
 }
 
-export function removeToken(key) {
+export function removeCookieToken(key) {
   return Cookies.remove(key)
 }
-*/

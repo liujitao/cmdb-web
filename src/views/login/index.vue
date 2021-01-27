@@ -6,15 +6,15 @@
         <h3 class="title">Login Form</h3>
       </div>
 
-      <el-form-item prop="username">
+      <el-form-item prop="user">
         <span class="svg-container">
           <svg-icon icon-class="user" />
         </span>
         <el-input
-          ref="username"
-          v-model="loginForm.username"
-          placeholder="Username"
-          name="username"
+          ref="user"
+          v-model="loginForm.user"
+          placeholder="user"
+          name="user"
           type="text"
           tabindex="1"
           auto-complete="on"
@@ -53,32 +53,32 @@
 </template>
 
 <script>
-import { validUsername } from '@/utils/validate'
+// import { validUsername } from '@/utils/validate'
 
 export default {
   name: 'Login',
   data() {
     const validateUsername = (rule, value, callback) => {
-      if (!validUsername(value)) {
-        callback(new Error('请输入合法的登录信息'))
+      if (value === null) {
+        callback(new Error('登录信息不能为空'))
       } else {
         callback()
       }
     }
     const validatePassword = (rule, value, callback) => {
-      if (value.length < 6) {
-        callback(new Error('请输入合法的登录密码'))
+      if (value === null) {
+        callback(new Error('登录密码不能为空'))
       } else {
         callback()
       }
     }
     return {
       loginForm: {
-        username: 'guest',
-        password: '@guest'
+        user: '13900000011',
+        password: '123456'
       },
       loginRules: {
-        username: [{ required: true, trigger: 'blur', validator: validateUsername }],
+        user: [{ required: true, trigger: 'blur', validator: validateUsername }],
         password: [{ required: true, trigger: 'blur', validator: validatePassword }]
       },
       loading: false,
