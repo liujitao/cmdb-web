@@ -8,15 +8,15 @@ export function login(data) {
   })
 }
 
-export function getInfo(token) {
+export function getUserInfo() {
   return request({
-    url: '/vue-admin-template/user/info',
-    method: 'get',
-    params: { token }
+    url: '/vue-admin-template/user/get',
+    method: 'get'
+    // params: { id }
   })
 }
 
-export function getList(params) {
+export function getUserList(params) {
   return request({
     url: '/vue-admin-template/user/list',
     method: 'get',
@@ -27,6 +27,13 @@ export function getList(params) {
 export function logout() {
   return request({
     url: '/vue-admin-template/user/logout',
+    method: 'post'
+  })
+}
+
+export function refreshToken() {
+  return request({
+    url: '/vue-admin-template/user/refresh',
     method: 'post'
   })
 }

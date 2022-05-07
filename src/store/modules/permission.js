@@ -1,5 +1,4 @@
 import { constantRoutes } from '@/router'
-import { getroutes } from '@/api/permission'
 import Layout from '@/layout'
 
 /**
@@ -47,19 +46,17 @@ const mutations = {
   }
 }
 
+// 获取菜单
 const actions = {
-  generateRoutes({ commit }) {
+  generateRoutes({ commit, state }, data) {
     return new Promise((resolve, reject) => {
-      getroutes().then(response => {
-        const { data } = response
-        const asyncRouterMap = data.list
-        const accessedRoutes = loopCreateRouter(asyncRouterMap)
-        accessedRoutes.push({ path: '*', redirect: '/404', hidden: true })
-        commit('SET_ROUTES', constantRoutes.concat(accessedRoutes))
-        resolve(accessedRoutes)
-      }).catch(error => {
-        reject(error)
-      })
+      const asyncRouterMap = data
+      const accessedRoutes = loopCreateRouter(asyncRouterMap)
+
+      // 插入404
+      accessedRoutes.push({ path: '*', redirect: '/404', hidden: true })
+      commit('SET_ROUTES', constantRoutes.concat(accessedRoutes))
+      resolve(accessedRoutes)
     })
   },
   changeSecondRoutes({ commit, state }, data) {

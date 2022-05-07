@@ -69,8 +69,8 @@
     >
       <el-table-column
         fixed
-        label="ID"
-        width="80"
+        label="用户ID"
+        width="200"
         align="center"
       >
         <template slot-scope="scope">
@@ -78,34 +78,35 @@
         </template>
       </el-table-column>
       <el-table-column
-        label="用户名"
+        label="用户姓名"
         width="150"
         align="center"
       >
         <template slot-scope="scope">
-          {{ scope.row.username }}
+          {{ scope.row.user_name }}
         </template>
       </el-table-column>
       <el-table-column
-        label="真实姓名"
+        label="性别"
+        width="80"
+        align="center"
+      >
+        <template slot-scope="scope">
+          <span>{{ scope.row.gender }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column
+        label="移动电话"
         width="150"
         align="center"
       >
         <template slot-scope="scope">
-          <span>{{ scope.row.truename }}</span>
+          {{ scope.row.mobile }}
         </template>
       </el-table-column>
       <el-table-column
-        label="用户类型"
-        width="100"
-        align="center"
-      >
-        <template slot-scope="scope">
-          {{ scope.row.type }}
-        </template>
-      </el-table-column>
-      <el-table-column
-        label="邮箱"
+        label="电子邮箱"
+        width="200"
         align="center"
       >
         <template slot-scope="scope">
@@ -113,30 +114,28 @@
         </template>
       </el-table-column>
       <el-table-column
-        label="IP地址"
-        width="130"
+        label="所在部门"
+        width="150"
         align="center"
       >
         <template slot-scope="scope">
-          {{ scope.row.ip }}
+          {{ scope.row.department }}
         </template>
       </el-table-column>
       <el-table-column
-        label="上次登录"
-        width="160"
+        label="角色"
         align="center"
       >
         <template slot-scope="scope">
-          <span>{{ scope.row.last_time }}</span>
+          {{ scope.row.roles }}
         </template>
       </el-table-column>
       <el-table-column
         label="注册时间"
-        width="160"
         align="center"
       >
         <template slot-scope="scope">
-          <span>{{ scope.row.created_at }}</span>
+          <span>{{ scope.row.create_at }}</span>
         </template>
       </el-table-column>
       <el-table-column
@@ -156,14 +155,19 @@
       <el-table-column
         fixed="right"
         label="操作"
-        width="200"
         align="center"
       >
         <template slot-scope="scope">
           <el-button-group>
             <el-button
+              type="info"
+              size="mini"
+              @click="edit(scope)"
+            >
+              详细
+            </el-button>
+            <el-button
               type="primary"
-              icon="el-icon-edit"
               size="mini"
               @click="edit(scope)"
             >
@@ -171,7 +175,6 @@
             </el-button>
             <el-button
               type="danger"
-              icon="el-icon-delete"
               size="mini"
               @click="del(scope)"
             >
@@ -245,15 +248,15 @@
 
 <script>
 import Pagination from '@/components/Pagination'
-import { getList } from '@/api/user'
+import { getUserList } from '@/api/user'
 import { deepClone } from '@/utils'
 
 const _temp = {
   id: '',
-  username: '',
-  truename: '',
+  user_name: '',
+  gender: 0,
   role: [],
-  type: '管理员',
+  mobile: '',
   email: '',
   status: 1
 }
@@ -299,7 +302,7 @@ export default {
     },
     fetchData() {
       this.listLoading = true
-      getList(this.listQuery).then(response => {
+      getUserList(this.listQuery).then(response => {
         this.list = response.data.items
         this.total = response.data.total
         this.listLoading = false

@@ -18,3 +18,14 @@ export function validUsername(str) {
   const valid_map = ['admin', 'editor']
   return valid_map.indexOf(str.trim()) >= 0
 }
+
+/**
+ * @param {string} str
+ * @returns {Boolean}
+ */
+export function validLoginID(str) {
+  const mobile = /^[1][3,4,5,7,8][0-9]{9}$/
+  const email = /^(\w-*\.*)+@(\w-?)+(\.\w{2,})+$/
+
+  return mobile.test(str) || email.test(str)
+}

@@ -1,13 +1,14 @@
-import { login, logout, getInfo } from '@/api/user'
-import { getToken, setToken, removeToken } from '@/utils/auth'
+import { login, logout, getUserInfo, refreshToken } from '@/api/user'
+import { getToken, setToken, removeToken, getRefreshToken, setRefreshToken, removeRefreshToken } from '@/utils/auth'
 import { resetRouter } from '@/router'
 
 const getDefaultState = () => {
   return {
     token: getToken(),
+    refresh_token: getRefreshToken(),
+    id: '',
     name: '',
-    avatar: '',
-    roles: []
+    avatar: ''
   }
 }
 
@@ -20,26 +21,31 @@ const mutations = {
   SET_TOKEN: (state, token) => {
     state.token = token
   },
+  SET_REFRESH_TOKEN: (state, token) => {
+    state.refresh_token = token
+  },
+  SET_ID: (state, id) => {
+    state.id = id
+  },
   SET_NAME: (state, name) => {
     state.name = name
   },
   SET_AVATAR: (state, avatar) => {
     state.avatar = avatar
-  },
-  SET_ROLES: (state, roles) => {
-    state.roles = roles
   }
 }
 
 const actions = {
   // user login
   login({ commit }, userInfo) {
-    const { username, password } = userInfo
+    const { loginID, password } = userInfo
     return new Promise((resolve, reject) => {
-      login({ username: username.trim(), password: password }).then(response => {
+      login({ login_id: loginID.trim(), password: password }).then(response => {
         const { data } = response
         commit('SET_TOKEN', data.token)
+        commit('SET_REFRESH_TOKEN', data.refresh_token)
         setToken(data.token)
+        setRefreshToken(data.refresh_token)
         resolve()
       }).catch(error => {
         reject(error)
@@ -48,20 +54,19 @@ const actions = {
   },
 
   // get user info
-  getInfo({ commit, state }) {
+  getUserInfo({ commit, state }) {
     return new Promise((resolve, reject) => {
-      getInfo(state.token).then(response => {
+      getUserInfo().then(response => {
         const { data } = response
 
         if (!data) {
-          return reject('Verification failed, please Login again.')
+          return reject('用户验证失败，请重新登录')
         }
 
-        const { name, avatar, roles } = data
-
-        commit('SET_NAME', name)
+        const { id, user_name, avatar } = data
+        commit('SET_ID', id)
+        commit('SET_NAME', user_name)
         commit('SET_AVATAR', avatar)
-        commit('SET_ROLES', roles)
         resolve(data)
       }).catch(error => {
         reject(error)
@@ -74,6 +79,7 @@ const actions = {
     return new Promise((resolve, reject) => {
       logout(state.token).then(() => {
         removeToken() // must remove  token  first
+        removeRefreshToken()
         resetRouter()
         commit('RESET_STATE')
         resolve()
@@ -87,8 +93,27 @@ const actions = {
   resetToken({ commit }) {
     return new Promise(resolve => {
       removeToken() // must remove  token  first
+      removeRefreshToken()
       commit('RESET_STATE')
       resolve()
+    })
+  },
+
+  refreshToken({ state, commit }) {
+    return new Promise((resolve, reject) => {
+      // console.log('state.token', state.token)
+      // console.log('state.refresh_token', state.refresh_token)
+      refreshToken().then(response => {
+        const { data } = response
+        commit('SET_TOKEN', data.token)
+        commit('SET_REFRESH_TOKEN', data.refresh_token)
+        setToken(data.token)
+        setRefreshToken(data.refresh_token)
+        resolve()
+      }).catch((error) => {
+        console.log('error.......', error)
+        reject(error)
+      })
     })
   }
 }
