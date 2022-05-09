@@ -92,7 +92,7 @@
         align="center"
       >
         <template slot-scope="scope">
-          <span>{{ scope.row.gender }}</span>
+          <span>{{ scope.row.gender | genderFilter }}</span>
         </template>
       </el-table-column>
       <el-table-column
@@ -119,7 +119,7 @@
         align="center"
       >
         <template slot-scope="scope">
-          {{ scope.row.department }}
+          {{ scope.row.department | departmentFilter }}
         </template>
       </el-table-column>
       <el-table-column
@@ -127,15 +127,15 @@
         align="center"
       >
         <template slot-scope="scope">
-          {{ scope.row.roles }}
+          {{ scope.row.roles | rolesFilter }}
         </template>
       </el-table-column>
       <el-table-column
-        label="注册时间"
+        label="建立时间"
         align="center"
       >
         <template slot-scope="scope">
-          <span>{{ scope.row.create_at }}</span>
+          <span>{{ scope.row.create_at | datetimeFilter }}</span>
         </template>
       </el-table-column>
       <el-table-column
@@ -249,7 +249,7 @@
 <script>
 import Pagination from '@/components/Pagination'
 import { getUserList } from '@/api/user'
-import { deepClone } from '@/utils'
+import { deepClone, dateFormat } from '@/utils'
 
 const _temp = {
   id: '',
@@ -264,6 +264,38 @@ const _temp = {
 export default {
   components: {
     Pagination
+  },
+  filters: {
+    genderFilter(gender) {
+      const genderMap = {
+        0: '女',
+        1: '男',
+        2: '未知'
+      }
+      return genderMap[gender]
+    },
+    departmentFilter(department) {
+      const data = []
+      department.forEach(item => {
+        if (item !== []) {
+          data.push(item.department_name)
+        }
+      })
+      return data.join(',')
+    },
+    rolesFilter(roles) {
+      const data = []
+      roles.forEach(item => {
+        if (item !== []) {
+          data.push(item.role_name)
+        }
+      })
+      return data.join(',')
+    },
+    datetimeFilter(datatime) {
+      const date = new Date(datatime)
+      return dateFormat('YYYY-mm-dd HH:MM:SS', date)
+    }
   },
   data() {
     return {
