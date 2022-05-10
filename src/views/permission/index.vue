@@ -1,15 +1,7 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
-      <el-button
-        size="small"
-        class="filter-item"
-        type="primary"
-        icon="el-icon-plus"
-        @click="add"
-      >
-        新增
-      </el-button>
+      <el-button size="small" class="filter-item" type="primary" icon="el-icon-plus" @click="add"> 新增 </el-button>
     </div>
 
     <el-table
@@ -28,75 +20,86 @@
     >
       <el-table-column
         fixed
-        label="ID"
-        width="120"
+        label="权限ID"
+        width="200"
       >
         <template slot-scope="scope">{{ scope.row.id }}</template>
       </el-table-column>
       <el-table-column
         align="center"
-        label="排序"
+        label="类型"
         width="80"
       >
-        <template slot-scope="scope">{{ scope.row.sort }}</template>
+        <template slot-scope="scope">
+          <el-tag :type="scope.row.permission_type | typeTagFilter">{{ scope.row.permission_type | typeTextFilter }}</el-tag>
+        </template>
       </el-table-column>
       <el-table-column
-        label="菜单名称"
+        align="center"
+        label="名称"
+        width="120"
       >
         <template slot-scope="scope">{{ scope.row.title }}</template>
       </el-table-column>
+
       <el-table-column
-        label="菜单标识"
+        align="center"
+        label="图标"
+        width="120"
+      >
+        <template slot-scope="scope">
+          <svg-icon v-if="scope.row.type!==2" :icon-class="scope.row.icon" />
+          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/post$/g)">
+            <el-tag size="small" type="success" effect="dark">POST</el-tag>
+          </span>
+          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/get$/g)">
+            <el-tag size="small" type effect="dark">GET</el-tag>
+          </span>
+          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/patch$/g)">
+            <el-tag size="small" type="warning" effect="dark">PATCH</el-tag>
+          </span>
+          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/delete$/g)">
+            <el-tag size="small" type="danger" effect="dark">DEL</el-tag>
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column
+        label="标识"
+        width="150"
       >
         <template slot-scope="scope">{{ scope.row.name }}</template>
       </el-table-column>
       <el-table-column
-        label="菜单路径"
+        label="组件"
+      >
+        <template slot-scope="scope">{{ scope.row.component }}</template>
+      </el-table-column>
+      <el-table-column
+        label="路径"
       >
         <template slot-scope="scope">{{ scope.row.path }}</template>
       </el-table-column>
       <el-table-column
-        align="center"
-        label="状态"
-        width="100"
+        label="重定向"
       >
-        <template slot-scope="scope">
-          <el-switch :value="scope.row.status" :active-value="1" :inactive-value="0" @change="handleUpdateStatus(scope)" />
-        </template>
+        <template slot-scope="scope">{{ scope.row.redirect }}</template>
+      </el-table-column>
+      <el-table-column
+        align="center"
+        label="排序"
+        width="50"
+      >
+        <template slot-scope="scope">{{ scope.row.sort_id }}</template>
       </el-table-column>
       <el-table-column
         fixed="right"
         align="center"
         label="操作"
-        width="270"
+        width="300"
       >
         <template slot-scope="scope">
-          <el-button-group>
-            <el-button
-              type="primary"
-              icon="el-icon-plus"
-              size="mini"
-              @click="append(scope)"
-            >
-              新增
-            </el-button>
-            <el-button
-              type="primary"
-              icon="el-icon-edit"
-              size="mini"
-              @click="edit(scope)"
-            >
-              修改
-            </el-button>
-            <el-button
-              type="danger"
-              icon="el-icon-delete"
-              size="mini"
-              @click="del(scope)"
-            >
-              删除
-            </el-button>
-          </el-button-group>
+          <el-button plain type="success" size="mini" @click="edit(scope)"> 修改 </el-button>
+          <el-button plain type="danger" size="mini" @click="del(scope)"> 删除 </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -116,7 +119,7 @@
         </el-form-item>
         <el-form-item label="所属上级">
           <el-cascader
-            v-model="temp.pid"
+            v-model="temp.parent_id"
             :options="parents"
             :props="{ checkStrictly: true, emitPath: false, expandTrigger: 'hover', value: 'id', label: 'title' }"
             :show-all-levels="false"
@@ -156,20 +159,37 @@
 </template>
 
 <script>
-import { getList } from '@/api/menu'
+import { getList } from '@/api/permission'
 import { deepClone } from '@/utils'
 
 const _temp = {
   id: '',
-  pid: '',
-  sort: 0,
+  parent_id: '',
+  sort_id: 0,
   title: '',
   name: '',
   status: 1
 }
 
 export default {
-
+  filters: {
+    typeTagFilter(type) {
+      const typeMap = {
+        0: 'primary',
+        1: 'success',
+        2: 'warning'
+      }
+      return typeMap[type]
+    },
+    typeTextFilter(type) {
+      const typeMap = {
+        0: '目录',
+        1: '菜单',
+        2: '操作'
+      }
+      return typeMap[type]
+    }
+  },
   data() {
     return {
       filterText: '',
@@ -193,11 +213,11 @@ export default {
     fetchData() {
       this.listLoading = true
       getList().then(response => {
-        this.list = response.data.list
+        this.list = response.data
         this.parents = [...[{
           id: '',
           title: '根目录'
-        }], ...response.data.list]
+        }], ...response.data]
         this.listLoading = false
       })
     },
@@ -217,7 +237,7 @@ export default {
       this.dialogVisible = true
       this.dialogType = 'append'
       const temp = deepClone(scope.row)
-      this.temp.pid = temp.id
+      this.temp.parent_id = temp.id
       this.$nextTick(() => {
         this.$refs['dataForm'].clearValidate()
       })

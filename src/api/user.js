@@ -16,7 +16,7 @@ export function getUserInfo() {
   })
 }
 
-export function getUserList(params) {
+export function getList(params) {
   return request({
     url: '/vue-admin-template/user/list',
     method: 'get',

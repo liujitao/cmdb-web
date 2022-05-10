@@ -34,11 +34,11 @@
         <template slot-scope="scope">{{ scope.row.id }}</template>
       </el-table-column>
       <el-table-column
-        label="角色名称"
+        label="部门名称"
         align="center"
         width="200"
       >
-        <template slot-scope="scope">{{ scope.row.role_name }}</template>
+        <template slot-scope="scope">{{ scope.row.department_name }}</template>
       </el-table-column>
       <el-table-column
         label="用户"
@@ -116,7 +116,7 @@
 
 <script>
 import Pagination from '@/components/Pagination'
-import { getList } from '@/api/role'
+import { getList } from '@/api/department'
 import { getList as getMenu } from '@/api/permission'
 import { deepClone, dateFormat } from '@/utils'
 

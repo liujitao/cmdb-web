@@ -53,6 +53,19 @@ const actions = {
       const asyncRouterMap = data
       const accessedRoutes = loopCreateRouter(asyncRouterMap)
 
+      // 插入dashboard
+      accessedRoutes.unshift({
+        path: '/',
+        component: Layout,
+        redirect: '/dashboard',
+        children: [{
+          path: 'dashboard',
+          name: 'Dashboard',
+          component: () => import('@/views/dashboard/index'),
+          meta: { title: 'Dashboard', icon: 'dashboard' }
+        }]
+      })
+
       // 插入404
       accessedRoutes.push({ path: '*', redirect: '/404', hidden: true })
       commit('SET_ROUTES', constantRoutes.concat(accessedRoutes))

@@ -30,30 +30,9 @@
         class="filter-item w-200"
       />
       <el-button-group class="filter-item">
-        <el-button
-          size="small"
-          type="primary"
-          icon="el-icon-search"
-          @click="search"
-        >
-          搜索
-        </el-button>
-        <el-button
-          size="small"
-          type="primary"
-          icon="el-icon-refresh"
-          @click="refresh"
-        >
-          重置
-        </el-button>
-        <el-button
-          size="small"
-          type="primary"
-          icon="el-icon-plus"
-          @click="add"
-        >
-          新增
-        </el-button>
+        <el-button size="small" type="primary" icon="el-icon-search" @click="search"> 搜索 </el-button>
+        <el-button size="small" type="primary" icon="el-icon-refresh" @click="refresh"> 重置 </el-button>
+        <el-button size="small" type="primary" icon="el-icon-plus" @click="add"> 新增 </el-button>
       </el-button-group>
     </div>
 
@@ -156,31 +135,12 @@
         fixed="right"
         label="操作"
         align="center"
+        width="300"
       >
         <template slot-scope="scope">
-          <el-button-group>
-            <el-button
-              type="info"
-              size="mini"
-              @click="edit(scope)"
-            >
-              详细
-            </el-button>
-            <el-button
-              type="primary"
-              size="mini"
-              @click="edit(scope)"
-            >
-              修改
-            </el-button>
-            <el-button
-              type="danger"
-              size="mini"
-              @click="del(scope)"
-            >
-              删除
-            </el-button>
-          </el-button-group>
+          <el-button plain type="warning" size="mini" @click="edit(scope)"> 重置密码 </el-button>
+          <el-button plain type="success" size="mini" @click="edit(scope)"> 修改 </el-button>
+          <el-button plain type="danger" size="mini" @click="del(scope)"> 删除 </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -248,7 +208,7 @@
 
 <script>
 import Pagination from '@/components/Pagination'
-import { getUserList } from '@/api/user'
+import { getList } from '@/api/user'
 import { deepClone, dateFormat } from '@/utils'
 
 const _temp = {
@@ -281,7 +241,7 @@ export default {
           data.push(item.department_name)
         }
       })
-      return data.join(',')
+      return data.join(' ')
     },
     rolesFilter(roles) {
       const data = []
@@ -290,7 +250,7 @@ export default {
           data.push(item.role_name)
         }
       })
-      return data.join(',')
+      return data.join(' ')
     },
     datetimeFilter(datatime) {
       const date = new Date(datatime)
@@ -334,7 +294,7 @@ export default {
     },
     fetchData() {
       this.listLoading = true
-      getUserList(this.listQuery).then(response => {
+      getList(this.listQuery).then(response => {
         this.list = response.data.items
         this.total = response.data.total
         this.listLoading = false
