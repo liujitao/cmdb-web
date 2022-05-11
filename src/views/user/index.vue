@@ -46,82 +46,35 @@
       class="table-container"
       highlight-current-row
     >
-      <el-table-column
-        fixed
-        label="用户ID"
-        width="200"
-        align="center"
-      >
+      <el-table-column fixed label="用户ID" width="200" align="center">
+        <template slot-scope="scope">{{ scope.row.id }}</template>
+      </el-table-column>
+      <el-table-column label="用户姓名" width="150" align="center">
+        <template slot-scope="scope">{{ scope.row.user_name }}</template>
+      </el-table-column>
+      <el-table-column label="性别" width="80" align="center">
+        <template slot-scope="scope"><span>{{ scope.row.gender | genderFilter }}</span></template>
+      </el-table-column>
+      <el-table-column label="移动电话" width="150" align="center">
+        <template slot-scope="scope">{{ scope.row.mobile }}</template>
+      </el-table-column>
+      <el-table-column label="电子邮箱" width="200" align="center">
+        <template slot-scope="scope">{{ scope.row.email }}</template>
+      </el-table-column>
+      <el-table-column label="所在部门" width="150" align="center">
         <template slot-scope="scope">
-          {{ scope.row.id }}
+          <el-tag v-for="(item, index) in scope.row.department" :key="index" effect="plain"> {{ item.department_name }} </el-tag>
         </template>
       </el-table-column>
-      <el-table-column
-        label="用户姓名"
-        width="150"
-        align="center"
-      >
+      <el-table-column label="角色" align="center">
         <template slot-scope="scope">
-          {{ scope.row.user_name }}
+          <el-tag v-for="(item, index) in scope.row.roles" :key="index" effect="plain"> {{ item.role_name }} </el-tag>
         </template>
       </el-table-column>
-      <el-table-column
-        label="性别"
-        width="80"
-        align="center"
-      >
-        <template slot-scope="scope">
-          <span>{{ scope.row.gender | genderFilter }}</span>
-        </template>
+      <el-table-column label="建立时间" align="center">
+        <template slot-scope="scope">{{ scope.row.create_at | datetimeFilter }}</template>
       </el-table-column>
-      <el-table-column
-        label="移动电话"
-        width="150"
-        align="center"
-      >
-        <template slot-scope="scope">
-          {{ scope.row.mobile }}
-        </template>
-      </el-table-column>
-      <el-table-column
-        label="电子邮箱"
-        width="200"
-        align="center"
-      >
-        <template slot-scope="scope">
-          {{ scope.row.email }}
-        </template>
-      </el-table-column>
-      <el-table-column
-        label="所在部门"
-        width="150"
-        align="center"
-      >
-        <template slot-scope="scope">
-          {{ scope.row.department | departmentFilter }}
-        </template>
-      </el-table-column>
-      <el-table-column
-        label="角色"
-        align="center"
-      >
-        <template slot-scope="scope">
-          {{ scope.row.roles | rolesFilter }}
-        </template>
-      </el-table-column>
-      <el-table-column
-        label="建立时间"
-        align="center"
-      >
-        <template slot-scope="scope">
-          <span>{{ scope.row.create_at | datetimeFilter }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column
-        label="状态"
-        width="80"
-        align="center"
-      >
+      <el-table-column label="状态" width="80" align="center">
         <template slot-scope="scope">
           <el-switch
             :value="scope.row.status"
@@ -131,12 +84,7 @@
           />
         </template>
       </el-table-column>
-      <el-table-column
-        fixed="right"
-        label="操作"
-        align="center"
-        width="300"
-      >
+      <el-table-column label="操作" width="300" align="center" fixed="right">
         <template slot-scope="scope">
           <el-button plain type="warning" size="mini" @click="edit(scope)"> 重置密码 </el-button>
           <el-button plain type="success" size="mini" @click="edit(scope)"> 修改 </el-button>
@@ -145,6 +93,7 @@
       </el-table-column>
     </el-table>
 
+    <!-- 分页 -->
     <pagination
       v-show="total > 0"
       :total="total"
@@ -153,6 +102,7 @@
       @pagination="fetchData"
     />
 
+    <!-- 弹出窗口 -->
     <el-dialog
       :visible.sync="dialogVisible"
       :title="dialogType === 'modify' ? '修改' : '新增'"
@@ -163,20 +113,29 @@
         label-width="120px"
         label-position="right"
       >
-        <el-form-item label="用户名">
-          <el-input v-model="temp.username" placeholder="请输入用户名" />
+        <el-form-item label="用户姓名">
+          <el-input v-model="temp.user_name" placeholder="请输入用户姓名" />
         </el-form-item>
-        <el-form-item label="真实姓名">
-          <el-input v-model="temp.truename" placeholder="请输入真实姓名" />
+        <el-form-item label="用户姓别">
+          <el-radio-group v-model="temp.gender">
+            <el-radio label="男">男</el-radio>
+            <el-radio label="女">女</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="移动电话">
+          <el-input v-model="temp.mobile" placeholder="请输入移动电话" />
         </el-form-item>
         <el-form-item label="电子邮箱">
           <el-input v-model="temp.email" placeholder="请输入电子邮箱" />
         </el-form-item>
-        <el-form-item label="用户类型">
-          <el-radio-group v-model="temp.type">
-            <el-radio label="管理员">管理员</el-radio>
-            <el-radio label="编辑">编辑</el-radio>
-          </el-radio-group>
+        <el-form-item label="用户部门">
+          <el-checkbox-group v-model="temp.department">
+            <el-radio-group v-model="radio">
+              <el-radio label="研发部">研发部</el-radio>
+              <el-radio label="测试部">测试部</el-radio>
+              <el-radio label="运维部">运维部</el-radio>
+            </el-radio-group>
+          </el-checkbox-group>
         </el-form-item>
         <el-form-item label="用户角色">
           <el-checkbox-group v-model="temp.role">
@@ -233,24 +192,6 @@ export default {
         2: '未知'
       }
       return genderMap[gender]
-    },
-    departmentFilter(department) {
-      const data = []
-      department.forEach(item => {
-        if (item !== []) {
-          data.push(item.department_name)
-        }
-      })
-      return data.join(' ')
-    },
-    rolesFilter(roles) {
-      const data = []
-      roles.forEach(item => {
-        if (item !== []) {
-          data.push(item.role_name)
-        }
-      })
-      return data.join(' ')
     },
     datetimeFilter(datatime) {
       const date = new Date(datatime)

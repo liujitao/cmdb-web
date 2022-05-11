@@ -18,144 +18,108 @@
       default-expand-all
       :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
     >
-      <el-table-column
-        fixed
-        label="权限ID"
-        width="200"
-      >
+      <el-table-column label="权限ID" width="200" fixed>
         <template slot-scope="scope">{{ scope.row.id }}</template>
       </el-table-column>
-      <el-table-column
-        align="center"
-        label="类型"
-        width="80"
-      >
+      <el-table-column label="类型" width="80" align="center">
         <template slot-scope="scope">
-          <el-tag :type="scope.row.permission_type | typeTagFilter">{{ scope.row.permission_type | typeTextFilter }}</el-tag>
+          <el-tag :type="scope.row.permission_type | typeTagFilter" effect="plain">{{ scope.row.permission_type | typeTextFilter }} </el-tag>
         </template>
       </el-table-column>
-      <el-table-column
-        align="center"
-        label="名称"
-        width="120"
-      >
+      <el-table-column label="名称" width="120" align="center">
         <template slot-scope="scope">{{ scope.row.title }}</template>
       </el-table-column>
 
-      <el-table-column
-        align="center"
-        label="图标"
-        width="120"
-      >
+      <el-table-column label="图标" width="120" align="center">
         <template slot-scope="scope">
-          <svg-icon v-if="scope.row.type!==2" :icon-class="scope.row.icon" />
-          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/post$/g)">
-            <el-tag size="small" type="success" effect="dark">POST</el-tag>
+          <i v-if="scope.row.permission_type!==2" :class="scope.row.icon" />
+          <span v-else-if="scope.row.permission_type===2 && scope.row.path.match(/\/post$/g)">
+            <el-tag size="mini" type="success" effect="plain">POST</el-tag>
           </span>
-          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/get$/g)">
-            <el-tag size="small" type effect="dark">GET</el-tag>
+          <span v-else-if="scope.row.permission_type===2 && scope.row.path.match(/\/get$/g)">
+            <el-tag size="small" type effect="plain">GET</el-tag>
           </span>
-          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/patch$/g)">
-            <el-tag size="small" type="warning" effect="dark">PATCH</el-tag>
+          <span v-else-if="scope.row.permission_type===2 && scope.row.path.match(/\/patch$/g)">
+            <el-tag size="small" type="warning" effect="plain">PATCH</el-tag>
           </span>
-          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/delete$/g)">
-            <el-tag size="small" type="danger" effect="dark">DEL</el-tag>
+          <span v-else-if="scope.row.permission_type===2 && scope.row.path.match(/\/delete$/g)">
+            <el-tag size="small" type="danger" effect="plain">DELETE</el-tag>
           </span>
         </template>
       </el-table-column>
-      <el-table-column
-        label="标识"
-        width="150"
-      >
+      <el-table-column label="标识" width="150">
         <template slot-scope="scope">{{ scope.row.name }}</template>
       </el-table-column>
-      <el-table-column
-        label="组件"
-      >
+      <el-table-column label="组件">
         <template slot-scope="scope">{{ scope.row.component }}</template>
       </el-table-column>
-      <el-table-column
-        label="路径"
-      >
+      <el-table-column label="路径">
         <template slot-scope="scope">{{ scope.row.path }}</template>
       </el-table-column>
-      <el-table-column
-        label="重定向"
-      >
+      <el-table-column label="重定向">
         <template slot-scope="scope">{{ scope.row.redirect }}</template>
       </el-table-column>
-      <el-table-column
-        align="center"
-        label="排序"
-        width="50"
-      >
+      <el-table-column label="排序" width="50" align="center">
         <template slot-scope="scope">{{ scope.row.sort_id }}</template>
       </el-table-column>
-      <el-table-column
-        fixed="right"
-        align="center"
-        label="操作"
-        width="300"
-      >
+      <el-table-column label="操作" width="300" align="center" fixed="right">
         <template slot-scope="scope">
           <el-button plain type="success" size="mini" @click="edit(scope)"> 修改 </el-button>
           <el-button plain type="danger" size="mini" @click="del(scope)"> 删除 </el-button>
         </template>
       </el-table-column>
-    </el-table>
-
-    <el-dialog
-      :visible.sync="dialogVisible"
-      :title="dialogType === 'modify' ? '修改' : '新增'"
-    >
-      <el-form
-        ref="dataForm"
-        :model="temp"
-        label-width="120px"
-        label-position="right"
+      <el-dialog
+        :visible.sync="dialogVisible"
+        :title="dialogType === 'modify' ? '修改' : '新增'"
       >
-        <el-form-item label="菜单排序">
-          <el-input-number v-model="temp.sort" :precision="0" :min="0" />
-        </el-form-item>
-        <el-form-item label="所属上级">
-          <el-cascader
-            v-model="temp.parent_id"
-            :options="parents"
-            :props="{ checkStrictly: true, emitPath: false, expandTrigger: 'hover', value: 'id', label: 'title' }"
-            :show-all-levels="false"
-            clearable
-          />
-        </el-form-item>
-        <el-form-item label="菜单名称">
-          <el-input v-model="temp.title" placeholder="请输入菜单名称" />
-        </el-form-item>
-        <el-form-item label="菜单标识">
-          <el-input v-model="temp.name" placeholder="请输入菜单标识" />
-        </el-form-item>
-        <el-form-item label="菜单图标">
-          <el-input v-model="temp.icon" placeholder="请输入菜单图标" />
-        </el-form-item>
-        <el-form-item label="菜单路径">
-          <el-input v-model="temp.path" placeholder="请输入菜单路径" />
-        </el-form-item>
-        <el-form-item label="菜单状态">
-          <el-radio-group v-model="temp.status">
-            <el-radio :label="0">禁用</el-radio>
-            <el-radio :label="1">正常</el-radio>
-          </el-radio-group>
-        </el-form-item>
-      </el-form>
-      <div class="text-right">
-        <el-button type="danger" @click="dialogVisible = false">
-          取消
-        </el-button>
-        <el-button type="primary" @click="submit">
-          确定
-        </el-button>
-      </div>
-    </el-dialog>
+        <el-form
+          ref="dataForm"
+          :model="temp"
+          label-width="120px"
+          label-position="right"
+        >
+          <el-form-item label="菜单排序">
+            <el-input-number v-model="temp.sort" :precision="0" :min="0" />
+          </el-form-item>
+          <el-form-item label="所属上级">
+            <el-cascader
+              v-model="temp.parent_id"
+              :options="parents"
+              :props="{ checkStrictly: true, emitPath: false, expandTrigger: 'hover', value: 'id', label: 'title' }"
+              :show-all-levels="false"
+              clearable
+            />
+          </el-form-item>
+          <el-form-item label="菜单名称">
+            <el-input v-model="temp.title" placeholder="请输入菜单名称" />
+          </el-form-item>
+          <el-form-item label="菜单标识">
+            <el-input v-model="temp.name" placeholder="请输入菜单标识" />
+          </el-form-item>
+          <el-form-item label="菜单图标">
+            <el-input v-model="temp.icon" placeholder="请输入菜单图标" />
+          </el-form-item>
+          <el-form-item label="菜单路径">
+            <el-input v-model="temp.path" placeholder="请输入菜单路径" />
+          </el-form-item>
+          <el-form-item label="菜单状态">
+            <el-radio-group v-model="temp.status">
+              <el-radio :label="0">禁用</el-radio>
+              <el-radio :label="1">正常</el-radio>
+            </el-radio-group>
+          </el-form-item>
+        </el-form>
+        <div class="text-right">
+          <el-button type="danger" @click="dialogVisible = false">
+            取消
+          </el-button>
+          <el-button type="primary" @click="submit">
+            确定
+          </el-button>
+        </div>
+      </el-dialog>
 
-  </div>
+    </el-table></div>
 </template>
 
 <script>
@@ -283,4 +247,3 @@ export default {
   }
 }
 </script>
-

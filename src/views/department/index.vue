@@ -25,33 +25,18 @@
       class="table-container"
       highlight-current-row
     >
-      <el-table-column
-        fixed
-        align="center"
-        label="角色ID"
-        width="200"
-      >
+      <el-table-column label="部门ID" width="200" align="center" fixed>
         <template slot-scope="scope">{{ scope.row.id }}</template>
       </el-table-column>
-      <el-table-column
-        label="部门名称"
-        align="center"
-        width="200"
-      >
+      <el-table-column label="部门名称" width="200" align="center">
         <template slot-scope="scope">{{ scope.row.department_name }}</template>
       </el-table-column>
-      <el-table-column
-        label="用户"
-        align="center"
-      >
-        <template slot-scope="scope">{{ scope.row.users | usersFilter }}</template>
+      <el-table-column label="用户" align="center">
+        <template slot-scope="scope">
+          <el-tag v-for="(item, index) in scope.row.users" :key="index" effect="plain"> {{ item.user_name }} </el-tag>
+        </template>
       </el-table-column>
-      <el-table-column
-        fixed="right"
-        align="center"
-        label="操作"
-        width="300"
-      >
+      <el-table-column label="操作" width="300" align="center" fixed="right">
         <template slot-scope="scope">
           <el-button plain type="warning" size="mini" @click="edit(scope)"> 权限 </el-button>
           <el-button plain type="success" size="mini" @click="edit(scope)"> 修改 </el-button>

@@ -55,7 +55,7 @@ service.interceptors.response.use(
       Message({
         message: res.message || 'Error',
         type: 'error',
-        duration: 5 * 1000
+        duration: 3 * 1000
       })
 
       // 50008: Illegal token; 50012: Other clients logged in; 50014: Token expired; 50015: refresh Token expired;
@@ -82,18 +82,18 @@ service.interceptors.response.use(
     // let config = error.response.config
     // console.log('err' + error) // for debug
 
-    Message({
-      message: error.message,
-      type: 'error',
-      duration: 5 * 1000
-    })
+    // Message({
+    //   message: error.message,
+    //   type: 'error',
+    //   duration: 5 * 1000
+    // })
 
     // 拦截网络连接非 200 及 401 响应的错误, eg. Status Code: 500 Internal Server Error
     if (error.response.status !== 200 && error.response.status !== 401) {
       Message({
         message: 'Status Code: ' + error.response.status + ' ' + error.response.statusText,
         type: 'error',
-        duration: 3 * 1000
+        duration: 2 * 1000
       })
       return
     }
@@ -102,7 +102,7 @@ service.interceptors.response.use(
       Message({
         message: '用户已被强制注销,重定向登录',
         type: 'error',
-        duration: 3 * 1000
+        duration: 2 * 1000
       })
 
       MessageBox.confirm('你已被登出，可以取消继续留在该页面，或者重新登录', '确定登出', {
@@ -120,7 +120,7 @@ service.interceptors.response.use(
       Message({
         message: 'access_token过期,自动续期',
         type: 'error',
-        duration: 3 * 1000
+        duration: 2 * 1000
       })
       return againRequest(error)
     }
@@ -129,7 +129,7 @@ service.interceptors.response.use(
       Message({
         message: 'refresh_token过期,重定向登录',
         type: 'error',
-        duration: 3 * 1000
+        duration: 2 * 1000
       })
 
       // console.log('refresh_token过期 超时......')
