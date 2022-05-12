@@ -7,3 +7,11 @@ export function getList(params) {
     params
   })
 }
+
+export function getOptions(params) {
+  return request({
+    url: '/vue-admin-template/department/select',
+    method: 'get',
+    params
+  })
+}

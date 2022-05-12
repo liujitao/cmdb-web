@@ -103,49 +103,44 @@
     />
 
     <!-- 弹出窗口 -->
-    <el-dialog
-      :visible.sync="dialogVisible"
-      :title="dialogType === 'modify' ? '修改' : '新增'"
-    >
-      <el-form
-        ref="dataForm"
-        :model="temp"
-        label-width="120px"
-        label-position="right"
-      >
+    <el-dialog :visible.sync="dialogVisible" :title="dialogType === 'modify' ? '修改' : '新增'">
+      <el-form ref="dataForm" :model="temp" label-width="120px" label-position="right">
         <el-form-item label="用户姓名">
           <el-input v-model="temp.user_name" placeholder="请输入用户姓名" />
         </el-form-item>
-        <el-form-item label="用户姓别">
+
+        <el-form-item label="用户性别">
           <el-radio-group v-model="temp.gender">
-            <el-radio label="男">男</el-radio>
-            <el-radio label="女">女</el-radio>
+            <el-radio :label="0">男</el-radio>
+            <el-radio :label="1">女</el-radio>
+            <el-radio :label="2">未知</el-radio>
           </el-radio-group>
         </el-form-item>
+
         <el-form-item label="移动电话">
           <el-input v-model="temp.mobile" placeholder="请输入移动电话" />
         </el-form-item>
+
         <el-form-item label="电子邮箱">
           <el-input v-model="temp.email" placeholder="请输入电子邮箱" />
         </el-form-item>
+
         <el-form-item label="用户部门">
-          <el-checkbox-group v-model="temp.department">
-            <el-radio-group v-model="radio">
-              <el-radio label="研发部">研发部</el-radio>
-              <el-radio label="测试部">测试部</el-radio>
-              <el-radio label="运维部">运维部</el-radio>
-            </el-radio-group>
-          </el-checkbox-group>
+          <el-cascader
+            v-model="temp.department"
+            :options="departmentOptions"
+            :props="{ checkStrictly: true, emitPath: false, expandTrigger: 'hover', value: 'id', label: 'department_name' }"
+            :show-all-levels="false"
+            clearable
+          />
         </el-form-item>
+
         <el-form-item label="用户角色">
-          <el-checkbox-group v-model="temp.role">
-            <el-checkbox label="超级管理员" />
-            <el-checkbox label="编辑人员" />
-            <el-checkbox label="审核人员" />
-            <el-checkbox label="客服人员" />
-            <el-checkbox label="普通用户" />
-          </el-checkbox-group>
+          <el-select v-model="temp.roles" placeholder="请选择角色" multiple>
+            <el-option v-for="item in roleOptions" :key="item.role_name" :label="item.role_name" :value="item.id" />
+          </el-select>
         </el-form-item>
+
         <el-form-item label="用户状态">
           <el-radio-group v-model="temp.status">
             <el-radio :label="0">禁用</el-radio>
@@ -153,6 +148,7 @@
           </el-radio-group>
         </el-form-item>
       </el-form>
+
       <div class="text-right">
         <el-button type="danger" @click="dialogVisible = false">
           取消
@@ -168,22 +164,23 @@
 <script>
 import Pagination from '@/components/Pagination'
 import { getList } from '@/api/user'
+import { getOptions } from '@/api/department'
+import { getRoleOptions } from '@/api/role'
 import { deepClone, dateFormat } from '@/utils'
 
 const _temp = {
-  id: '',
+  id: undefined,
   user_name: '',
   gender: 0,
-  role: [],
   mobile: '',
   email: '',
+  departments: [],
+  roles: [],
   status: 1
 }
 
 export default {
-  components: {
-    Pagination
-  },
+  components: { Pagination },
   filters: {
     genderFilter(gender) {
       const genderMap = {
@@ -213,7 +210,9 @@ export default {
       temp: Object.assign({}, _temp),
       dialogVisible: false,
       dialogType: 'create',
-      loading: false
+      loading: false,
+      departmentOptions: [],
+      roleOptions: []
     }
   },
   created() {
@@ -239,6 +238,12 @@ export default {
         this.list = response.data.items
         this.total = response.data.total
         this.listLoading = false
+      })
+      getOptions().then(response => {
+        this.departmentOptions = response.data
+      })
+      getRoleOptions().then(response => {
+        this.roleOptions = response.data.items
       })
     },
     resetTemp() {

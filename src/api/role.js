@@ -7,3 +7,11 @@ export function getList(params) {
     params
   })
 }
+
+export function getRoleOptions(params) {
+  return request({
+    url: '/vue-admin-template/role/list',
+    method: 'get',
+    params
+  })
+}
