@@ -33,7 +33,7 @@
       </el-table-column>
       <el-table-column label="用户" align="center">
         <template slot-scope="scope">
-          <el-tag v-for="(item, index) in scope.row.users" :key="index" effect="plain"> {{ item.user_name }} </el-tag>
+          <el-tag v-for="(item, index) in scope.row.users" :key="index" effect="plain" style="margin: 0px 2px 0px 2px"> {{ item.user_name }} </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="操作" width="300" align="center" fixed="right">

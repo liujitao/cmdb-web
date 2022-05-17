@@ -7,9 +7,7 @@
       </div>
 
       <el-form-item prop="loginID">
-        <span class="svg-container">
-          <svg-icon icon-class="user" />
-        </span>
+        <span class="svg-container"><svg-icon icon-class="user" /></span>
         <el-input
           ref="loginID"
           v-model="loginForm.loginID"
@@ -22,9 +20,7 @@
       </el-form-item>
 
       <el-form-item prop="password">
-        <span class="svg-container">
-          <svg-icon icon-class="password" />
-        </span>
+        <span class="svg-container"><svg-icon icon-class="password" /></span>
         <el-input
           :key="passwordType"
           ref="password"
@@ -36,9 +32,7 @@
           auto-complete="on"
           @keyup.enter.native="handleLogin"
         />
-        <span class="show-pwd" @click="showPwd">
-          <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
-        </span>
+        <span class="show-pwd" @click="showPwd"><svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" /></span>
       </el-form-item>
 
       <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">点击登录</el-button>
@@ -65,6 +59,7 @@ export default {
         callback()
       }
     }
+
     const validatePassword = (rule, value, callback) => {
       if (value.length < 5) {
         callback(new Error('密码长度最小5个字符'))
@@ -72,13 +67,14 @@ export default {
         callback()
       }
     }
+
     return {
       loginForm: {
         loginID: '13910514434',
         password: 'admin'
       },
       loginRules: {
-        username: [{ required: true, trigger: 'blur', validator: validateLoginID }],
+        loginID: [{ required: true, trigger: 'blur', validator: validateLoginID }],
         password: [{ required: true, trigger: 'blur', validator: validatePassword }]
       },
       loading: false,

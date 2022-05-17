@@ -33,7 +33,7 @@ router.beforeEach(async(to, from, next) => {
       } else {
         try {
           // get user info
-          const { menus } = await store.dispatch('user/getUserInfo')
+          const { menus } = await store.dispatch('user/getUser')
           // console.log(menus)
 
           // generate accessible routes map based on roles
