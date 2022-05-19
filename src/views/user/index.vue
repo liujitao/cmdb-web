@@ -46,10 +46,10 @@
       class="table-container"
       highlight-current-row
     >
-      <el-table-column label="用户ID" align="center" fixed="left">
+      <el-table-column label="用户ID" width="250" align="center" fixed="left">
         <template slot-scope="scope">{{ scope.row.id }}</template>
       </el-table-column>
-      <el-table-column label="用户姓名" align="center">
+      <el-table-column label="用户名称" align="center">
         <template slot-scope="scope">{{ scope.row.user_name }}</template>
       </el-table-column>
       <el-table-column label="性别" width="80" align="center">
@@ -63,12 +63,12 @@
       </el-table-column>
       <el-table-column label="所在部门" width="150" align="center">
         <template slot-scope="scope">
-          <el-tag v-for="(item, index) in scope.row.departments" :key="index" effect="plain" style="margin: 0px 2px 0px 2px"> {{ item.department_name }} </el-tag>
+          <el-tag v-for="(item, index) in scope.row.departments" :key="`department-${index}`" effect="plain" style="margin: 0px 2px 0px 2px"> {{ item.department_name }} </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="角色" align="center">
+      <el-table-column label="角色" width="200" align="center">
         <template slot-scope="scope">
-          <el-tag v-for="(item, index) in scope.row.roles" :key="index" effect="plain" style="margin: 0px 2px 0px 2px"> {{ item.role_name }} </el-tag>
+          <el-tag v-for="(item, index) in scope.row.roles" :key="`role-${index}`" effect="plain" style="margin: 0px 2px 0px 2px"> {{ item.role_name }} </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="建立时间" align="center">
@@ -84,7 +84,7 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="300" align="center" fixed="right">
+      <el-table-column label="操作" width="250" align="center" fixed="right">
         <template slot-scope="scope">
           <el-button plain type="warning" size="mini" @click="handlePassword(scope)"> 重置密码 </el-button>
           <el-button plain type="success" size="mini" @click="handleUpdate(scope)"> 修改 </el-button>
@@ -127,18 +127,25 @@
 
         <el-form-item label="用户部门" prop="departments">
           <el-cascader
+            ref="tree"
             v-model="temp.departments"
             :options="departmentOptions"
             :props="{ checkStrictly: false, emitPath: false, multiple: true, expandTrigger: 'hover', value: 'id', label: 'department_name' }"
-            :show-all-levels="false"
+            :show-all-levels="true"
             clearable
             style="width: 100%"
           />
         </el-form-item>
 
         <el-form-item label="用户角色" prop="roles">
-          <el-select v-model="temp.roles" placeholder="请选择角色" multiple style="width: 100%">
-            <el-option v-for="item in roleOptions" :key="item.role_name" :label="item.role_name" :value="item.id" />
+          <el-select
+            v-model="temp.roles"
+            placeholder="请选择角色"
+            multiple
+            clearable
+            style="width: 100%"
+          >
+            <el-option v-for="(item, index) in roleOptions" :key="`roleOption-${index}`" :value="item.id" :label="item.role_name" />
           </el-select>
         </el-form-item>
 
@@ -169,7 +176,7 @@ import { getUserList, createUser, updateUser, deleteUser, changePassword } from 
 import { getDepartmentOptions } from '@/api/department'
 import { getRoleOptions } from '@/api/role'
 import { validMobile, validEmail } from '@/utils/validate'
-import { deepClone, dateFormat } from '@/utils'
+import { deepClone, dateFormat, dataConvert } from '@/utils'
 
 const _temp = {
   id: undefined,
@@ -231,7 +238,7 @@ export default {
       listLoading: true,
       listQuery: {
         page: 1,
-        limit: 20,
+        limit: 10,
         created_at: undefined,
         status: undefined,
         keyword: undefined
@@ -261,14 +268,13 @@ export default {
     refresh() {
       this.listQuery = {
         page: 1,
-        limit: 20,
+        limit: 10,
         created_at: undefined,
         status: undefined,
         keyword: undefined
       }
       this.fetchData()
     },
-    // 获取数据
     fetchData() {
       this.listLoading = true
       getUserList(this.listQuery).then(response => {
@@ -280,13 +286,12 @@ export default {
         this.departmentOptions = response.data
       })
       getRoleOptions().then(response => {
-        this.roleOptions = response.data.items
+        this.roleOptions = response.data
       })
     },
     resetTemp() {
       this.temp = Object.assign({}, _temp)
     },
-    // 新建用户
     handleCreate() {
       this.resetTemp()
       this.dialogVisible = true
@@ -295,7 +300,6 @@ export default {
         this.$refs['dataForm'].clearValidate()
       })
     },
-    // 编辑用户
     handleUpdate(scope) {
       this.resetTemp()
       this.dialogVisible = true
@@ -303,9 +307,12 @@ export default {
       this.temp = deepClone(scope.row)
       this.$nextTick(() => {
         this.$refs['dataForm'].clearValidate()
+        // 回显数据
+        this.temp.departments = dataConvert(this.temp.departments)
+        this.temp.roles = dataConvert(this.temp.roles)
       })
     },
-    // 删除用户
+
     handleDelete(scope) {
       this.$confirm('确认删除该条数据吗？', '提示', {
         confirmButtonText: '确定',

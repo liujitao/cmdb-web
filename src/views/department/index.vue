@@ -25,20 +25,22 @@
       class="table-container"
       highlight-current-row
     >
-      <el-table-column label="部门ID" width="200" align="center" fixed>
+      <el-table-column label="部门ID" width="250" align="center" fixed="left">
         <template slot-scope="scope">{{ scope.row.id }}</template>
       </el-table-column>
-      <el-table-column label="部门名称" width="200" align="center">
+      <el-table-column label="部门名称" width="250" align="center">
         <template slot-scope="scope">{{ scope.row.department_name }}</template>
       </el-table-column>
-      <el-table-column label="用户" align="center">
+      <el-table-column label="描述" align="center">
+        <template slot-scope="scope">{{ scope.row.description }}</template>
+      </el-table-column>
+      <el-table-column label="用户" align="left">
         <template slot-scope="scope">
           <el-tag v-for="(item, index) in scope.row.users" :key="index" effect="plain" style="margin: 0px 2px 0px 2px"> {{ item.user_name }} </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="300" align="center" fixed="right">
+      <el-table-column label="操作" width="150" align="center" fixed="right">
         <template slot-scope="scope">
-          <el-button plain type="warning" size="mini" @click="edit(scope)"> 权限 </el-button>
           <el-button plain type="success" size="mini" @click="edit(scope)"> 修改 </el-button>
           <el-button plain type="danger" size="mini" @click="del(scope)"> 删除 </el-button>
         </template>
@@ -140,7 +142,7 @@ export default {
       listLoading: true,
       listQuery: {
         page: 1,
-        limit: 20,
+        limit: 10,
         keyword: undefined
       },
       temp: Object.assign({}, _temp),
@@ -164,7 +166,7 @@ export default {
     refresh() {
       this.listQuery = {
         page: 1,
-        limit: 20,
+        limit: 10,
         keyword: undefined
       }
       this.fetchData()

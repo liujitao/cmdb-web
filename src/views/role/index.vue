@@ -11,7 +11,7 @@
       <el-button-group class="filter-item">
         <el-button size="small" type="primary" icon="el-icon-search" @click="search"> 搜索 </el-button>
         <el-button size="small" type="primary" icon="el-icon-refresh" @click="refresh"> 重置 </el-button>
-        <el-button size="small" type="primary" icon="el-icon-plus" @click="add"> 新增 </el-button>
+        <el-button size="small" type="primary" icon="el-icon-plus" @click="handleCreate"> 新增 </el-button>
       </el-button-group>
     </div>
 
@@ -25,22 +25,24 @@
       class="table-container"
       highlight-current-row
     >
-      <el-table-column label="角色ID" width="200" align="center" fixed>
+      <el-table-column label="角色ID" width="250" align="center" fixed="left">
         <template slot-scope="scope">{{ scope.row.id }}</template>
       </el-table-column>
-      <el-table-column label="角色名称" align="center" width="200">
+      <el-table-column label="角色名称" width="250" align="center">
         <template slot-scope="scope">{{ scope.row.role_name }}</template>
       </el-table-column>
-      <el-table-column label="用户" align="center">
+      <el-table-column label="描述" align="center">
+        <template slot-scope="scope">{{ scope.row.description }}</template>
+      </el-table-column>
+      <el-table-column label="用户" align="left">
         <template slot-scope="scope">
           <el-tag v-for="(item, index) in scope.row.users" :key="index" effect="plain" style="margin: 0px 2px 0px 2px"> {{ item.user_name }} </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="300" align="center" fixed="right">
+      <el-table-column label="操作" width="150" align="center" fixed="right">
         <template slot-scope="scope">
-          <el-button plain type="warning" size="mini" @click="edit(scope)"> 权限 </el-button>
-          <el-button plain type="success" size="mini" @click="edit(scope)"> 修改 </el-button>
-          <el-button plain type="danger" size="mini" @click="del(scope)"> 删除 </el-button>
+          <el-button plain type="success" size="mini" @click="handleUpdate(scope)"> 修改 </el-button>
+          <el-button plain type="danger" size="mini" @click="handleDelete(scope)"> 删除 </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -53,70 +55,51 @@
       @pagination="fetchData"
     />
 
-    <el-dialog
-      :visible.sync="dialogVisible"
-      :title="dialogType === 'modify' ? '修改' : '新增'"
-    >
-      <el-form
-        ref="dataForm"
-        :model="temp"
-        label-width="120px"
-        label-position="right"
-      >
-        <el-form-item label="用户组名称">
-          <el-input v-model="temp.title" placeholder="请输入用户组名称" />
+    <el-dialog :visible.sync="dialogVisible" :title="dialogType === 'modify' ? '修改' : '新增'">
+      <el-form ref="dataForm" :model="temp" :rules="rules" label-width="120px" label-position="right">
+        <el-form-item label="角色名称">
+          <el-input v-model="temp.role_name" placeholder="请输入角色名称" />
         </el-form-item>
-        <el-form-item label="用户组标识">
-          <el-input v-model="temp.name" placeholder="请输入用户组标识" />
+        <el-form-item label="描述">
+          <el-input v-model="temp.description" placeholder="请输入描述" />
         </el-form-item>
-        <el-form-item label="菜单权限">
+        <el-form-item label="权限">
           <el-tree
             ref="tree"
-            :data="menus"
-            :props="defaultMenuProps"
-            show-checkbox
-            accordion
             node-key="id"
-            class="permission-tree"
+            :data="permissionOptions"
+            show-checkbox
+            :check-strictly="false"
+            :props="defaultProps"
           />
-        </el-form-item>
-        <el-form-item label="用户组状态">
-          <el-radio-group v-model="temp.status">
-            <el-radio :label="0">禁用</el-radio>
-            <el-radio :label="1">正常</el-radio>
-          </el-radio-group>
         </el-form-item>
       </el-form>
       <div class="text-right">
-        <el-button type="danger" @click="dialogVisible = false">
-          取消
-        </el-button>
-        <el-button type="primary" @click="submit">
-          确定
-        </el-button>
+        <el-button type="danger" @click="dialogVisible = false"> 取消 </el-button>
+        <el-button type="primary" @click="dialogType==='create'?createData(temp):updateData()"> 确定 </el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import { Message } from 'element-ui'
 import Pagination from '@/components/Pagination'
-import { getList } from '@/api/role'
-import { getList as getMenu } from '@/api/permission'
-import { deepClone, dateFormat } from '@/utils'
+import { getRoleList, createRole, updateRole, deleteRole } from '@/api/role'
+import { getPermissionOptions } from '@/api/permission'
+import { deepClone, dateFormat, dataConvert } from '@/utils'
 
 const _temp = {
   id: '',
-  title: '',
-  name: '',
-  perm: [],
-  status: 1
+  role_name: '',
+  description: '',
+  permissions: [],
+  create_user: '',
+  update_user: ''
 }
 
 export default {
-  components: {
-    Pagination
-  },
+  components: { Pagination },
   filters: {
     datetimeFilter(datatime) {
       const date = new Date(datatime)
@@ -127,26 +110,26 @@ export default {
     return {
       total: 0,
       list: [],
-      menus: [],
       listLoading: true,
       listQuery: {
         page: 1,
-        limit: 20,
+        limit: 10,
         keyword: undefined
       },
       temp: Object.assign({}, _temp),
       dialogVisible: false,
       dialogType: 'create',
       loading: false,
-      defaultMenuProps: {
-        children: 'children',
-        label: 'title'
+      permissionOptions: [],
+      defaultProps: { children: 'children', label: 'title' },
+      // 检验表单输入
+      rules: {
+        role_name: [{ required: true, trigger: 'blur', message: '请输入角色名称' }]
       }
     }
   },
   created() {
     this.fetchData()
-    this.fetchMenu()
   },
   methods: {
     search() {
@@ -155,28 +138,26 @@ export default {
     refresh() {
       this.listQuery = {
         page: 1,
-        limit: 20,
+        limit: 10,
         keyword: undefined
       }
       this.fetchData()
     },
     fetchData() {
       this.listLoading = true
-      getList(this.listQuery).then(response => {
+      getRoleList(this.listQuery).then(response => {
         this.list = response.data.items
         this.total = response.data.total
         this.listLoading = false
       })
-    },
-    fetchMenu() {
-      getMenu().then(response => {
-        this.menus = response.data.list
+      getPermissionOptions().then(response => {
+        this.permissionOptions = response.data
       })
     },
     resetTemp() {
       this.temp = Object.assign({}, _temp)
     },
-    add() {
+    handleCreate() {
       this.resetTemp()
       this.dialogVisible = true
       this.dialogType = 'create'
@@ -184,43 +165,82 @@ export default {
         this.$refs['dataForm'].clearValidate()
       })
     },
-    edit(scope) {
+    handleUpdate(scope) {
       this.resetTemp()
       this.dialogVisible = true
       this.dialogType = 'modify'
       this.temp = deepClone(scope.row)
       this.$nextTick(() => {
         this.$refs['dataForm'].clearValidate()
+        // 回显数据
+        this.temp.permissions = dataConvert(this.temp.permissions)
+        this.$refs.tree.setCheckedKeys(this.temp.permissions)
       })
     },
-    del(scope) {
+    handleDelete(scope) {
       this.$confirm('确认删除该条数据吗？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        setTimeout(() => {
-          this.list.splice(scope.$index, 1)
-          this.$message({
-            message: '删除成功',
-            type: 'success'
+        deleteRole({ 'id': scope.row.id }).then(res => {
+          console.log('deleteRole...', res)
+          this.fetchData()
+
+          Message({
+            message: res.message || 'Error',
+            type: 'success',
+            duration: 3 * 1000
           })
-        }, 300)
+        }).catch(err => {
+          console.log(err)
+          this.updateLoading = true
+        })
       })
     },
-    submit() {
-      if (this.loading) {
-        return
-      }
-      this.loading = true
-      setTimeout(() => {
-        this.$message({
-          message: '提交成功',
-          type: 'success'
-        })
+    createData() {
+      this.updateLoading = true
+      this.temp.create_user = this.$store.getters.name
+      this.temp.permissions = this.$refs.tree.getCheckedKeys()
+
+      // 调用api创建数据入库
+      createRole(this.temp).then(res => {
+        this.updateLoading = false
+        console.log('createRole...', res)
+        this.fetchData()
         this.dialogVisible = false
-        this.loading = false
-      }, 300)
+
+        Message({
+          message: res.message || 'Error',
+          type: 'success',
+          duration: 3 * 1000
+        })
+      }).catch(err => {
+        console.log(err)
+        this.updateLoading = true
+      })
+    },
+    updateData() {
+      this.updateLoading = true
+      this.temp.update_user = this.$store.getters.name
+      this.temp.permissions = this.$refs.tree.getCheckedKeys()
+
+      // 调用api更新数据入库
+      updateRole(this.temp).then(res => {
+        this.updateLoading = false
+        console.log('updateRole...', res)
+        this.fetchData()
+        this.dialogVisible = false
+
+        Message({
+          message: res.message || 'Error',
+          type: 'success',
+          duration: 3 * 1000
+        })
+      }).catch(err => {
+        console.log(err)
+        this.updateLoading = true
+      })
     }
   }
 }

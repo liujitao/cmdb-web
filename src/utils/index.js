@@ -198,3 +198,16 @@ export function dateFormat(fmt, date) {
   }
   return fmt
 }
+
+/* [{id: "10010", department_name: "市场部"}, {id: "10011", department_name: "软件组"}]
+    =>
+   ["10010", "10011"]
+*/
+export function dataConvert(origin) {
+  if (origin.length === 0) return origin
+  const temp = []
+  for (var i = 0; i < origin.length; i++) {
+    temp.push(origin[i].id)
+  }
+  return temp
+}

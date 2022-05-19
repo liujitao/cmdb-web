@@ -7,3 +7,11 @@ export function getList(params) {
     params
   })
 }
+
+export function getPermissionOptions(params) {
+  return request({
+    url: '/vue-admin-template/permission/select',
+    method: 'get',
+    params
+  })
+}
