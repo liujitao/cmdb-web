@@ -1,10 +1,9 @@
 import request from '@/utils/request'
 
-export function getList(params) {
+export function getDepartmentTree() {
   return request({
-    url: '/vue-admin-template/department/list',
-    method: 'get',
-    params
+    url: '/vue-admin-template/department/tree',
+    method: 'get'
   })
 }
 

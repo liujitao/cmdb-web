@@ -1,193 +1,86 @@
 <template>
-  <div class="app-container">
-    <div class="filter-container">
-      <el-input
-        v-model="listQuery.keyword"
-        size="small"
-        placeholder="请输入关键词"
-        clearable
-        class="filter-item w-200"
-      />
-      <el-button-group class="filter-item">
-        <el-button size="small" type="primary" icon="el-icon-search" @click="search"> 搜索 </el-button>
-        <el-button size="small" type="primary" icon="el-icon-refresh" @click="refresh"> 重置 </el-button>
-        <el-button size="small" type="primary" icon="el-icon-plus" @click="add"> 新增 </el-button>
-      </el-button-group>
-    </div>
-
-    <el-table
-      v-loading="listLoading"
-      :data="list"
-      element-loading-text="Loading"
-      border
-      fit
-      height="100%"
-      class="table-container"
-      highlight-current-row
-    >
-      <el-table-column label="部门ID" width="250" align="center" fixed="left">
-        <template slot-scope="scope">{{ scope.row.id }}</template>
-      </el-table-column>
-      <el-table-column label="部门名称" width="250" align="center">
-        <template slot-scope="scope">{{ scope.row.department_name }}</template>
-      </el-table-column>
-      <el-table-column label="描述" align="center">
-        <template slot-scope="scope">{{ scope.row.description }}</template>
-      </el-table-column>
-      <el-table-column label="用户" align="left">
-        <template slot-scope="scope">
-          <el-tag v-for="(item, index) in scope.row.users" :key="index" effect="plain" style="margin: 0px 2px 0px 2px"> {{ item.user_name }} </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="150" align="center" fixed="right">
-        <template slot-scope="scope">
-          <el-button plain type="success" size="mini" @click="edit(scope)"> 修改 </el-button>
-          <el-button plain type="danger" size="mini" @click="del(scope)"> 删除 </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-
-    <pagination
-      v-show="total > 0"
-      :total="total"
-      :page.sync="listQuery.page"
-      :limit.sync="listQuery.limit"
-      @pagination="fetchData"
-    />
-
-    <el-dialog
-      :visible.sync="dialogVisible"
-      :title="dialogType === 'modify' ? '修改' : '新增'"
-    >
-      <el-form
-        ref="dataForm"
-        :model="temp"
-        label-width="120px"
-        label-position="right"
-      >
-        <el-form-item label="用户组名称">
-          <el-input v-model="temp.title" placeholder="请输入用户组名称" />
-        </el-form-item>
-        <el-form-item label="用户组标识">
-          <el-input v-model="temp.name" placeholder="请输入用户组标识" />
-        </el-form-item>
-        <el-form-item label="菜单权限">
+  <el-row>
+    <el-col :span="10">
+      <div class="app-container">
+        <div class="filter-container">
+          <el-input v-model="filterText" placeholder="输入关键字进行过滤" />
+        </div>
+        <div class="filter-container">
           <el-tree
             ref="tree"
-            :data="menus"
-            :props="defaultMenuProps"
-            show-checkbox
-            accordion
             node-key="id"
-            class="permission-tree"
+            :data="treeData"
+            :props="defaultProps"
+            :check-strictly="false"
+            :filter-node-method="filterNode"
+            default-expand-all
           />
-        </el-form-item>
-        <el-form-item label="用户组状态">
-          <el-radio-group v-model="temp.status">
-            <el-radio :label="0">禁用</el-radio>
-            <el-radio :label="1">正常</el-radio>
-          </el-radio-group>
-        </el-form-item>
-      </el-form>
-      <div class="text-right">
-        <el-button type="danger" @click="dialogVisible = false">
-          取消
-        </el-button>
-        <el-button type="primary" @click="submit">
-          确定
-        </el-button>
+        </div>
       </div>
-    </el-dialog>
-  </div>
+    </el-col>
+    <el-col :span="14">
+      <div class="app-container">
+        <div class="filter-container">
+          <el-alert
+            title="请勿乱删除部门, 确实需要删除部门的时候, (1).请确定这个部门下面没有子部门, (2).请确定这个部门下面没有用户. 只有满足以上两种情况才可以删除部门成功!"
+            type="warning"
+          />
+        </div>
+      </div>
+    </el-col>
+  </el-row>
 </template>
 
 <script>
-import Pagination from '@/components/Pagination'
-import { getList } from '@/api/department'
-import { getList as getMenu } from '@/api/permission'
-import { deepClone, dateFormat } from '@/utils'
+import { getDepartmentTree } from '@/api/department'
+import { deepClone } from '@/utils'
 
 const _temp = {
   id: '',
-  title: '',
-  name: '',
-  perm: [],
-  status: 1
+  parent_id: '',
+  department_name: ''
 }
 
 export default {
-  components: {
-    Pagination
-  },
-  filters: {
-    usersFilter(users) {
-      const data = []
-      users.forEach(item => {
-        if (item !== []) {
-          data.push(item.user_name)
-        }
-      })
-      return data.join(',')
-    },
-    datetimeFilter(datatime) {
-      const date = new Date(datatime)
-      return dateFormat('YYYY-mm-dd HH:MM:SS', date)
-    }
-  },
   data() {
     return {
-      total: 0,
-      list: [],
-      menus: [],
-      listLoading: true,
-      listQuery: {
-        page: 1,
-        limit: 10,
-        keyword: undefined
-      },
       temp: Object.assign({}, _temp),
       dialogVisible: false,
       dialogType: 'create',
       loading: false,
-      defaultMenuProps: {
-        children: 'children',
-        label: 'title'
-      }
+      filterText: '',
+      treeData: [],
+      defaultProps: { children: 'children', label: 'department_name' }
+    }
+  },
+  watch: {
+    filterText(val) {
+      this.$refs.tree.filter(val)
     }
   },
   created() {
     this.fetchData()
-    this.fetchMenu()
   },
   methods: {
+    filterNode(value, data) {
+      if (!value) return true
+      return data.label.indexOf(value) !== -1
+    },
     search() {
       this.fetchData()
     },
     refresh() {
-      this.listQuery = {
-        page: 1,
-        limit: 10,
-        keyword: undefined
-      }
       this.fetchData()
     },
     fetchData() {
-      this.listLoading = true
-      getList(this.listQuery).then(response => {
-        this.list = response.data.items
-        this.total = response.data.total
-        this.listLoading = false
-      })
-    },
-    fetchMenu() {
-      getMenu().then(response => {
-        this.menus = response.data.list
+      getDepartmentTree().then(response => {
+        this.treeData = response.data
       })
     },
     resetTemp() {
       this.temp = Object.assign({}, _temp)
     },
-    add() {
+    handlerCreate() {
       this.resetTemp()
       this.dialogVisible = true
       this.dialogType = 'create'
@@ -195,7 +88,7 @@ export default {
         this.$refs['dataForm'].clearValidate()
       })
     },
-    edit(scope) {
+    handlerUpdate(scope) {
       this.resetTemp()
       this.dialogVisible = true
       this.dialogType = 'modify'
@@ -204,7 +97,7 @@ export default {
         this.$refs['dataForm'].clearValidate()
       })
     },
-    del(scope) {
+    handlerDelete(scope) {
       this.$confirm('确认删除该条数据吗？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -218,20 +111,6 @@ export default {
           })
         }, 300)
       })
-    },
-    submit() {
-      if (this.loading) {
-        return
-      }
-      this.loading = true
-      setTimeout(() => {
-        this.$message({
-          message: '提交成功',
-          type: 'success'
-        })
-        this.dialogVisible = false
-        this.loading = false
-      }, 300)
     }
   }
 }
