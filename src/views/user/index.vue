@@ -127,7 +127,7 @@
 
         <el-form-item label="用户部门" prop="departments">
           <el-cascader
-            ref="tree"
+            ref="cascader"
             v-model="temp.departments"
             :options="departmentOptions"
             :props="{ checkStrictly: false, emitPath: false, multiple: true, expandTrigger: 'hover', value: 'id', label: 'department_name' }"

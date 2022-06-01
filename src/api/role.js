@@ -23,6 +23,7 @@ export function updateRole(data) {
     data
   })
 }
+
 export function deleteRole(params) {
   return request({
     url: '/vue-admin-template/role/delete',
@@ -30,6 +31,7 @@ export function deleteRole(params) {
     params
   })
 }
+
 export function getRoleList(params) {
   return request({
     url: '/vue-admin-template/role/list',

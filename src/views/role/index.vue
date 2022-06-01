@@ -75,8 +75,8 @@
         </el-form-item>
       </el-form>
       <div class="text-right">
-        <el-button type="danger" @click="dialogVisible = false"> 取消 </el-button>
         <el-button type="primary" @click="dialogType==='create'?createData(temp):updateData()"> 确定 </el-button>
+        <el-button type="default" @click="dialogVisible = false"> 取消 </el-button>
       </div>
     </el-dialog>
   </div>
