@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
-      <el-button size="small" class="filter-item" type="primary" icon="el-icon-plus" @click="add"> 新增 </el-button>
+      <el-button size="small" class="filter-item" type="primary" icon="el-icon-plus" @click="handleCreate"> 新增 </el-button>
     </div>
 
     <el-table
@@ -67,8 +67,8 @@
 
       <el-table-column label="操作" width="300" align="center" fixed="right">
         <template slot-scope="scope">
-          <el-button plain type="success" size="mini" @click="edit(scope)"> 修改 </el-button>
-          <el-button plain type="danger" size="mini" @click="del(scope)"> 删除 </el-button>
+          <el-button plain type="success" size="mini" @click="handleUpdate(scope)"> 修改 </el-button>
+          <el-button plain type="danger" size="mini" @click="handleDelete(scope)"> 删除 </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -86,7 +86,7 @@
           <el-input v-model="temp.title" :placeholder="permissionType[temp.permission_type] + '名称'" />
         </el-form-item>
 
-        <el-form-item label="所属上级">
+        <el-form-item v-if="temp.permission_type!==0" label="所属上级">
           <el-cascader
             v-model="temp.parent_id"
             :options="parents"
@@ -117,13 +117,13 @@
         </el-form-item>
 
         <el-form-item label="排序">
-          <el-input-number v-model="temp.sort" :precision="0" :min="0" />
+          <el-input-number v-model="temp.sort_id" :precision="0" :min="0" :max="127" />
         </el-form-item>
       </el-form>
 
       <div class="text-right">
-        <el-button type="danger" @click="dialogVisible = false"> 取消 </el-button>
-        <el-button type="primary" @click="submit"> 确定 </el-button>
+        <el-button type="primary" @click="dialogType==='create'?createData(temp):updateData()"> 确定 </el-button>
+        <el-button type="default" @click="dialogVisible = false"> 取消 </el-button>
       </div>
     </el-dialog>
 
@@ -131,18 +131,19 @@
 </template>
 
 <script>
-import { getList } from '@/api/permission'
+import { Message } from 'element-ui'
+import { getPermissionList, createPermission, updatePermission, deletePermission } from '@/api/permission'
 import { deepClone } from '@/utils'
 
 const _temp = {
   id: '',
-  permission_type: 0,
   parent_id: '',
   title: '',
   name: '',
   icon: '',
   path: '',
   component: '',
+  permission_type: 0,
   sort_id: 0
 }
 
@@ -188,7 +189,7 @@ export default {
   methods: {
     fetchData() {
       this.listLoading = true
-      getList().then(response => {
+      getPermissionList().then(response => {
         this.list = response.data
         this.parents = [...[{
           id: '',
@@ -200,7 +201,7 @@ export default {
     resetTemp() {
       this.temp = Object.assign({}, _temp)
     },
-    add() {
+    handleCreate() {
       this.resetTemp()
       this.dialogVisible = true
       this.dialogType = 'create'
@@ -208,17 +209,7 @@ export default {
         this.$refs['dataForm'].clearValidate()
       })
     },
-    append(scope) {
-      this.resetTemp()
-      this.dialogVisible = true
-      this.dialogType = 'append'
-      const temp = deepClone(scope.row)
-      this.temp.parent_id = temp.id
-      this.$nextTick(() => {
-        this.$refs['dataForm'].clearValidate()
-      })
-    },
-    edit(scope) {
+    handleUpdate(scope) {
       this.resetTemp()
       this.dialogVisible = true
       this.dialogType = 'modify'
@@ -227,34 +218,68 @@ export default {
         this.$refs['dataForm'].clearValidate()
       })
     },
-    del(scope) {
+    handleDelete(scope) {
       this.$confirm('确认删除该条数据吗？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        setTimeout(() => {
-          this.list.splice(scope.$index, 1)
-          this.$message({
-            message: '删除成功',
-            type: 'success'
+        deletePermission({ 'id': scope.row.id }).then(res => {
+          console.log('deletePermission...', res)
+          this.fetchData()
+
+          Message({
+            message: res.message || 'Error',
+            type: 'success',
+            duration: 3 * 1000
           })
-        }, 300)
+        }).catch(err => {
+          console.log(err)
+          this.updateLoading = true
+        })
       })
     },
-    submit() {
-      if (this.loading) {
-        return
-      }
-      this.loading = true
-      setTimeout(() => {
-        this.$message({
-          message: '提交成功',
-          type: 'success'
-        })
+    createData() {
+      this.updateLoading = true
+      this.temp.create_user = this.$store.getters.name
+
+      // 调用api创建数据入库
+      createPermission(this.temp).then(res => {
+        this.updateLoading = false
+        console.log('createPermission...', res)
+        this.fetchData()
         this.dialogVisible = false
-        this.loading = false
-      }, 300)
+
+        Message({
+          message: res.message || 'Error',
+          type: 'success',
+          duration: 3 * 1000
+        })
+      }).catch(err => {
+        console.log(err)
+        this.updateLoading = true
+      })
+    },
+    updateData() {
+      this.updateLoading = true
+      this.temp.update_user = this.$store.getters.name
+
+      // 调用api更新数据入库
+      updatePermission(this.temp).then(res => {
+        this.updateLoading = false
+        console.log('updatePermission...', res)
+        this.fetchData()
+        this.dialogVisible = false
+
+        Message({
+          message: res.message || 'Error',
+          type: 'success',
+          duration: 3 * 1000
+        })
+      }).catch(err => {
+        console.log(err)
+        this.updateLoading = true
+      })
     }
   }
 }
