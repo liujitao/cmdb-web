@@ -97,7 +97,8 @@
         </el-form-item>
 
         <el-form-item v-if="temp.permission_type===0" label="图标">
-          <el-input v-model="temp.icon" placeholder="请输入标识" />
+          <e-icon-picker v-model="temp.icon" :options="options" />
+          <e-icon :icon-name="temp.icon" />
         </el-form-item>
 
         <el-form-item v-if="temp.permission_type!==2" label="标识">
@@ -132,6 +133,13 @@
 
 <script>
 import { Message } from 'element-ui'
+
+import { EIcon, EIconPicker } from 'e-icon-picker'
+import 'e-icon-picker/lib/symbol.js' // 基本彩色图标库
+import 'e-icon-picker/lib/index.css' // 基本样式，包含基本图标
+import 'font-awesome/css/font-awesome.min.css' // font-awesome 图标库
+import 'element-ui/lib/theme-chalk/icon.css' // element-ui 图标库
+
 import { getPermissionList, createPermission, updatePermission, deletePermission } from '@/api/permission'
 import { deepClone } from '@/utils'
 
@@ -166,6 +174,7 @@ export default {
       return typeMap[type]
     }
   },
+  components: { EIcon, EIconPicker },
   data() {
     return {
       filterText: '',
@@ -180,7 +189,17 @@ export default {
       dialogType: 'create',
       loading: false,
       temp: Object.assign({}, _temp),
-      permissionType: ['目录', '菜单', '操作']
+      permissionType: ['目录', '菜单', '操作'],
+      // e-icon-picker 配置
+      options: {
+        FontAwesome: true,
+        ElementUI: true,
+        eIcon: false, // 自带的图标，来自阿里妈妈
+        eIconSymbol: false, // 是否开启彩色图标
+        addIconList: [],
+        removeIconList: [],
+        zIndex: 3100// 选择器弹层的最低层,全局配置
+      }
     }
   },
   created() {
