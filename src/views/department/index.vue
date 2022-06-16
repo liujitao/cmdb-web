@@ -22,9 +22,9 @@
         <div class="filter-container">
           <span>部门详细信息</span>
           <el-button-group style="float: right;">
-            <el-button type="primary" size="small" @click="handlerCreate">新增</el-button>
-            <el-button type="success" size="small" @click="handlerUpdate">修改</el-button>
-            <el-button type="danger" size="small" @click="handlerDelete">删除</el-button>
+            <el-button v-permission="['/setting/department/post']" type="primary" size="small" @click="handlerCreate">新增</el-button>
+            <el-button v-permission="['/setting/department/patch']" type="success" size="small" @click="handlerUpdate">修改</el-button>
+            <el-button v-permission="['/setting/department/delete']" type="danger" size="small" @click="handlerDelete">删除</el-button>
           </el-button-group>
         </div>
 
@@ -73,6 +73,7 @@
 <script>
 import { Message } from 'element-ui'
 import { getDepartmentTree, createDepartment, updateDepartment, deleteDepartment } from '@/api/department'
+import permission from '@/directive/permission/index.js' // 权限判断指令
 
 const _temp = {
   id: '',
@@ -84,6 +85,7 @@ const _temp = {
 }
 
 export default {
+  directives: { permission },
   data() {
     return {
       temp: Object.assign({}, _temp),

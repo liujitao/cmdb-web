@@ -8,7 +8,8 @@ const getDefaultState = () => {
     refresh_token: getRefreshToken(),
     id: '',
     name: '',
-    avatar: ''
+    avatar: '',
+    permission: []
   }
 }
 
@@ -32,6 +33,9 @@ const mutations = {
   },
   SET_AVATAR: (state, avatar) => {
     state.avatar = avatar
+  },
+  SET_PERMISSION: (state, permission) => {
+    state.permission = permission
   }
 }
 
@@ -63,10 +67,11 @@ const actions = {
           return reject('用户验证失败，请重新登录')
         }
 
-        const { id, user_name, avatar } = data
+        const { id, user_name, avatar, buttons } = data
         commit('SET_ID', id)
         commit('SET_NAME', user_name)
         commit('SET_AVATAR', avatar)
+        commit('SET_PERMISSION', buttons)
         resolve(data)
       }).catch(error => {
         reject(error)

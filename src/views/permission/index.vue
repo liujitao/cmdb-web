@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
-      <el-button size="small" class="filter-item" type="primary" icon="el-icon-plus" @click="handleCreate"> 新增 </el-button>
+      <el-button v-permission="['/setting/permission/post']" size="small" class="filter-item" type="primary" icon="el-icon-plus" @click="handleCreate"> 新增 </el-button>
     </div>
 
     <el-table
@@ -67,8 +67,8 @@
 
       <el-table-column label="操作" width="300" align="center" fixed="right">
         <template slot-scope="scope">
-          <el-button plain type="success" size="mini" @click="handleUpdate(scope)"> 修改 </el-button>
-          <el-button plain type="danger" size="mini" @click="handleDelete(scope)"> 删除 </el-button>
+          <el-button v-permission="['/setting/permission/patch']" plain type="success" size="mini" @click="handleUpdate(scope)"> 修改 </el-button>
+          <el-button v-permission="['/setting/permission/delete']" plain type="danger" size="mini" @click="handleDelete(scope)"> 删除 </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -142,6 +142,7 @@ import 'element-ui/lib/theme-chalk/icon.css' // element-ui 图标库
 
 import { getPermissionList, createPermission, updatePermission, deletePermission } from '@/api/permission'
 import { deepClone } from '@/utils'
+import permission from '@/directive/permission/index.js' // 权限判断指令
 
 const _temp = {
   id: '',
@@ -175,6 +176,7 @@ export default {
     }
   },
   components: { EIcon, EIconPicker },
+  directives: { permission },
   data() {
     return {
       filterText: '',

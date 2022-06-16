@@ -32,7 +32,7 @@
       <el-button-group class="filter-item">
         <el-button size="small" type="primary" icon="el-icon-search" @click="search"> 搜索 </el-button>
         <el-button size="small" type="primary" icon="el-icon-refresh" @click="refresh"> 重置 </el-button>
-        <el-button size="small" type="primary" icon="el-icon-plus" @click="handleCreate"> 新增 </el-button>
+        <el-button v-permission="['/setting/user/post']" size="small" type="primary" icon="el-icon-plus" @click="handleCreate"> 新增 </el-button>
       </el-button-group>
     </div>
 
@@ -86,9 +86,9 @@
       </el-table-column>
       <el-table-column label="操作" width="250" align="center" fixed="right">
         <template slot-scope="scope">
-          <el-button plain type="warning" size="mini" @click="handlePassword(scope)"> 重置密码 </el-button>
-          <el-button plain type="success" size="mini" @click="handleUpdate(scope)"> 修改 </el-button>
-          <el-button plain type="danger" size="mini" @click="handleDelete(scope)"> 删除 </el-button>
+          <el-button v-permission="['/setting/user/password']" plain type="warning" size="mini" @click="handlePassword(scope)"> 重置密码 </el-button>
+          <el-button v-permission="['/setting/user/patch']" plain type="success" size="mini" @click="handleUpdate(scope)"> 修改 </el-button>
+          <el-button v-permission="['/setting/user/delete']" plain type="danger" size="mini" @click="handleDelete(scope)"> 删除 </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -111,8 +111,8 @@
 
         <el-form-item label="用户性别" prop="gender">
           <el-radio-group v-model="temp.gender">
-            <el-radio :label="0">男</el-radio>
-            <el-radio :label="1">女</el-radio>
+            <el-radio :label="0">女</el-radio>
+            <el-radio :label="1">男</el-radio>
             <el-radio :label="2">未知</el-radio>
           </el-radio-group>
         </el-form-item>
@@ -177,6 +177,7 @@ import { getDepartmentOptions } from '@/api/department'
 import { getRoleOptions } from '@/api/role'
 import { validMobile, validEmail } from '@/utils/validate'
 import { deepClone, dateFormat, dataConvert } from '@/utils'
+import permission from '@/directive/permission/index.js' // 权限判断指令
 
 const _temp = {
   id: undefined,
@@ -193,6 +194,7 @@ const _temp = {
 
 export default {
   components: { Pagination },
+  directives: { permission },
   filters: {
     genderFilter(gender) {
       const genderMap = {

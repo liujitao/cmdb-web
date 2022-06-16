@@ -11,7 +11,7 @@
       <el-button-group class="filter-item">
         <el-button size="small" type="primary" icon="el-icon-search" @click="search"> 搜索 </el-button>
         <el-button size="small" type="primary" icon="el-icon-refresh" @click="refresh"> 重置 </el-button>
-        <el-button size="small" type="primary" icon="el-icon-plus" @click="handleCreate"> 新增 </el-button>
+        <el-button v-permission="['/setting/role/post']" size="small" type="primary" icon="el-icon-plus" @click="handleCreate"> 新增 </el-button>
       </el-button-group>
     </div>
 
@@ -41,8 +41,8 @@
       </el-table-column>
       <el-table-column label="操作" width="150" align="center" fixed="right">
         <template slot-scope="scope">
-          <el-button plain type="success" size="mini" @click="handleUpdate(scope)"> 修改 </el-button>
-          <el-button plain type="danger" size="mini" @click="handleDelete(scope)"> 删除 </el-button>
+          <el-button v-permission="['/setting/role/patch']" plain type="success" size="mini" @click="handleUpdate(scope)"> 修改 </el-button>
+          <el-button v-permission="['/setting/role/delete']" plain type="danger" size="mini" @click="handleDelete(scope)"> 删除 </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -87,7 +87,8 @@ import { Message } from 'element-ui'
 import Pagination from '@/components/Pagination'
 import { getRoleList, createRole, updateRole, deleteRole } from '@/api/role'
 import { getPermissionOptions } from '@/api/permission'
-import { deepClone, dateFormat, dataConvert } from '@/utils'
+import { deepClone, dateFormat } from '@/utils'
+import permission from '@/directive/permission/index.js' // 权限判断指令
 
 const _temp = {
   id: '',
@@ -100,6 +101,7 @@ const _temp = {
 
 export default {
   components: { Pagination },
+  directives: { permission },
   filters: {
     datetimeFilter(datatime) {
       const date = new Date(datatime)
@@ -172,9 +174,14 @@ export default {
       this.temp = deepClone(scope.row)
       this.$nextTick(() => {
         this.$refs['dataForm'].clearValidate()
-        // 回显数据
-        this.temp.permissions = dataConvert(this.temp.permissions)
-        this.$refs.tree.setCheckedKeys(this.temp.permissions)
+        // 回显选中的数据
+        const checkKeys = []
+        this.temp.permissions.forEach(item => {
+          if (!this.$refs.tree.getNode(item.id).childNodes || !this.$refs.tree.getNode(item.id).childNodes.length) {
+            checkKeys.push(item.id)
+          }
+        })
+        this.$refs.tree.setCheckedKeys(checkKeys)
       })
     },
     handleDelete(scope) {
@@ -201,7 +208,11 @@ export default {
     createData() {
       this.updateLoading = true
       this.temp.create_user = this.$store.getters.name
-      this.temp.permissions = this.$refs.tree.getCheckedKeys()
+
+      // 获取选中节点
+      const checkKeys = this.$refs.tree.getCheckedKeys()
+      const halfCheckKeys = this.$refs.tree.getHalfCheckedKeys()
+      this.temp.permissions = halfCheckKeys.concat(checkKeys)
 
       // 调用api创建数据入库
       createRole(this.temp).then(res => {
@@ -223,7 +234,11 @@ export default {
     updateData() {
       this.updateLoading = true
       this.temp.update_user = this.$store.getters.name
-      this.temp.permissions = this.$refs.tree.getCheckedKeys()
+
+      // 获取选中节点
+      const checkKeys = this.$refs.tree.getCheckedKeys()
+      const halfCheckKeys = this.$refs.tree.getHalfCheckedKeys()
+      this.temp.permissions = halfCheckKeys.concat(checkKeys)
 
       // 调用api更新数据入库
       updateRole(this.temp).then(res => {
